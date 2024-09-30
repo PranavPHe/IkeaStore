@@ -84,13 +84,13 @@ bool confirm()
     int ch;
     mvprintw(11, 2, "Confirm? [");
     attron(COLOR_PAIR(CONFIRM_COLOR_Y));
-    printw("Y");
+    addch('Y');
     attroff(COLOR_PAIR(CONFIRM_COLOR_Y));
     printw("] or [");
     attron(COLOR_PAIR(MESSAGE_ERROR_COLOR));
-    printw("N");
+    addch('N');
     attroff(COLOR_PAIR(MESSAGE_ERROR_COLOR));
-    printw("]");
+    addch(']');
 
     ch = getch();
     return (ch == 'y');
@@ -125,6 +125,7 @@ void standing_desks()
             while (!validInput)
             {
                 mvprintw(10, 2, "Enter Quantity: ");
+                clrtoeol();
                 echo();
                 wgetnstr(stdscr, input, sizeof(input) - 1);
                 noecho();
@@ -145,7 +146,6 @@ void standing_desks()
                     attron(COLOR_PAIR(MESSAGE_ERROR_COLOR) | A_BOLD);
                     mvprintw(16, 2, "Invalid input. Please enter a whole number.");
                     attroff(COLOR_PAIR(MESSAGE_ERROR_COLOR) | A_BOLD);
-                    clrtoeol();
                 }
                 else
                 {
