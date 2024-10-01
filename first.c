@@ -324,6 +324,116 @@ void product_selection(Product *product)
     }
 }
 
+float calculate_cost(Product product)
+{
+    // Define prices for each product type
+    float standingDeskPrices[] = {139.99, 179.99, 239.99};
+    float blackoutCurtainPrice = 50.00; // Assuming a fixed price for simplicity
+    float tabletopPrices[] = {200.00, 250.00, 300.00};
+    float tableLegPrices[] = {50.00, 60.00, 70.00};
+
+    float cost = 0.0;
+
+    if (product.quantity > 0)
+    {
+        switch (product.type)
+        {
+        case SIZE:
+            int sizeIndex = 0;
+            if (strcmp(product.info.size, "S") == 0)
+            {
+                sizeIndex = 0;
+            }
+            else if (strcmp(product.info.size, "M") == 0)
+            {
+                sizeIndex = 1;
+            }
+            else if (strcmp(product.info.size, "L") == 0)
+            {
+                sizeIndex = 2;
+            }
+            cost = product.quantity * standingDeskPrices[sizeIndex];
+            break;
+        case RANGE:
+        {
+            int inchDifference = product.quantity - 45;
+            cost = product.quantity * blackoutCurtainPrice + (inchDifference * 0.2);
+        }
+        break;
+        case MATERIAL:
+            int materialIndex = 0;
+            if (strcmp(product.info.material, "Wood") == 0)
+            {
+                materialIndex = 0;
+            }
+            else if (strcmp(product.info.material, "Marble") == 0)
+            {
+                materialIndex = 1;
+            }
+            else if (strcmp(product.info.material, "Granite") == 0)
+            {
+                materialIndex = 2;
+            }
+            cost = product.quantity * tabletopPrices[materialIndex];
+            break;
+        case COLOR:
+            int colorIndex = 0;
+            if (strcmp(product.info.color, "Almond") == 0)
+            {
+                colorIndex = 0;
+            }
+            else if (strcmp(product.info.color, "Mahogany") == 0)
+            {
+                colorIndex = 1;
+            }
+            else if (strcmp(product.info.color, "Drift Wood") == 0)
+            {
+                colorIndex = 2;
+            }
+            cost = product.quantity * tableLegPrices[colorIndex];
+            break;
+        }
+    }
+
+    return cost;
+}
+
+void receipt()
+{
+    clear();
+    message(col, "Receipt");
+    int line = 3;
+    int itemIndex = 0;
+    float total = 0;
+
+    for (int i = 0; i < MAX_PRODUCTS; i++)
+    {
+        if (products[i].quantity > 0)
+        {
+            float cost = calculate_cost(products[i]);
+            total += cost;
+
+            if (products[i].type == SIZE)
+            {
+                mvprintw(line++, 3, "%s [%s]: X %d\t\t$%.2f", products[i].name, products[i].info.size, products[i].quantity, cost);
+            }
+            else if (products[i].type == RANGE)
+            {
+                mvprintw(line++, 3, "%s [%d]: X %d\t\t$%.2f", products[i].name, products[i].info.range, products[i].quantity, cost);
+            }
+            else if (products[i].type == MATERIAL)
+            {
+                mvprintw(line++, 3, "%s [%s]: X %d\t\t$%.2f", products[i].name, products[i].info.material, products[i].quantity, cost);
+            }
+            else if (products[i].type == COLOR)
+            {
+                mvprintw(line++, 3, "%s [%s]: X %d\t\t$%.2f", products[i].name, products[i].info.color, products[i].quantity, cost);
+            }
+        }
+    }
+    mvprintw(line+1, 3, "Total: $%.2f", total);
+}
+
 void view_cart()
 {
     bool running = true;
@@ -423,6 +533,10 @@ void view_cart()
                     }
                 }
             }
+            break;
+        case 'c':
+            receipt();
+            getch();
             break;
         }
     }
