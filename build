@@ -1,0 +1,3 @@
+#!/bin/sh
+
+gcc -o output first.c -lncurses -lm
