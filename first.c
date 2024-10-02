@@ -1,3 +1,9 @@
+// Pranav and Stratton
+// 10/1/2024
+// Ikea Project in C
+// Extra: Created functionality to remove products and more.
+
+
 // Imports
 #include <ncurses.h>
 #include <ctype.h>
@@ -12,6 +18,7 @@
 #define MESSAGE_ERROR_COLOR 3
 #define CONFIRM_COLOR_Y 4
 
+// Global variables
 int row, col, ch;
 
 // Functions for min and max
@@ -54,7 +61,7 @@ typedef struct
 Product products[MAX_PRODUCTS];
 int productCount = 0;
 
-// Function to create the top banner
+// Function to create the top banner on each page
 void message(int col, char *text)
 {
     attron(A_BOLD);
@@ -112,7 +119,7 @@ void menu(int y, int width, char **options, int quantity, int selected)
     attroff(COLOR_PAIR(MESSAGE_BOX_COLOR));
 }
 
-// Function to confirm selected product
+// Function that returns whether or not the user confirms the choice.
 bool confirm(int row)
 {
     int ch;
@@ -133,6 +140,7 @@ bool confirm(int row)
 // Initializing the products by their attributes
 void initialize_products()
 {
+    // Arrays of characteristics
     char *sizeOptions[] = {"S", "M", "L"};
     char *materialOptions[] = {"Wood", "Marble", "Granite"};
     char *colorOptions[] = {"Almond", "Mahogany", "Drift Wood"};
@@ -170,6 +178,7 @@ void initialize_products()
     }
 }
 
+// Allows the user to select the product they want
 void product_selection(Product *product)
 {
     bool running = true;
@@ -182,11 +191,13 @@ void product_selection(Product *product)
         clear();
         message(col, product->name);
 
+        // Pointer Arrays for things that need to get printed
         char *sizes[] = {"S", "M", "L"};
         char *ranges[] = {"45", "46", "47", "48", "49", "50", "51", "52", "53", "54"};
         char *materials[] = {"Wood", "Marble", "Granite"};
         char *colors[] = {"Almond", "Mahogany", "Drift Wood"};
 
+        // Create menu based on attribute
         if (product->type == SIZE)
         {
             menu(3, 10, sizes, 3, selectedOption);
@@ -204,6 +215,7 @@ void product_selection(Product *product)
             menu(3, 10, colors, 3, selectedOption);
         }
 
+        // Moving blackout curtains down depending on height of menu
         if (strcmp(product->name, "Blackout Curtains") == 0)
         {
             mvprintw(20, 2, "[");
@@ -222,11 +234,13 @@ void product_selection(Product *product)
             printw("] Back");
         }
 
+        // If the option is selected, enter quantity
         if (optionSelected)
         {
             bool validInput = false;
             char input[10];
 
+            // While the input is not valid, continue to ask for input. Otherwise, add to the quantity of the specific product.
             while (!validInput)
             {
                 if (strcmp(product->name, "Blackout Curtains") == 0)
@@ -303,6 +317,7 @@ void product_selection(Product *product)
         }
         else
         {
+            // Keybindings
             ch = getch();
 
             switch (ch)
@@ -324,16 +339,18 @@ void product_selection(Product *product)
     }
 }
 
+// Function to calculate the cost of the products 
 float calculate_cost(Product product)
 {
-    // Define prices for each product type
+    // Defining prices for each product type
     float standingDeskPrices[] = {139.99, 179.99, 239.99};
-    float blackoutCurtainPrice = 50.00; // Assuming a fixed price for simplicity
-    float tabletopPrices[] = {200.00, 250.00, 300.00};
-    float tableLegPrices[] = {50.00, 60.00, 70.00};
+    float blackoutCurtainPrice = 30.00;
+    float tabletopPrices[] = {168.99, 250.00, 300.00};
+    float tableLegPrices[] = {70.00, 73.99, 75.99};
 
     float cost = 0.0;
 
+    // Return cost only if there is a quantity to the product
     if (product.quantity > 0)
     {
         switch (product.type)
@@ -398,6 +415,7 @@ float calculate_cost(Product product)
     return cost;
 }
 
+// Function to print out the receipt. 
 void receipt()
 {
     clear();
@@ -406,6 +424,12 @@ void receipt()
     int itemIndex = 0;
     float total = 0;
 
+    // IKEA Text
+    attron(COLOR_PAIR(MESSAGE_TEXT_COLOR));
+    mvprintw(line++, 3, "=========IKEA=========");
+    attroff(COLOR_PAIR(MESSAGE_TEXT_COLOR));
+
+    // While there are products, calculate the cost of the product
     for (int i = 0; i < MAX_PRODUCTS; i++)
     {
         if (products[i].quantity > 0)
@@ -413,6 +437,7 @@ void receipt()
             float cost = calculate_cost(products[i]);
             total += cost;
 
+            // Print out the product with proper formatting for each product type.
             if (products[i].type == SIZE)
             {
                 mvprintw(line++, 3, "%s [%s]: X %d\t\t$%.2f", products[i].name, products[i].info.size, products[i].quantity, cost);
@@ -431,20 +456,32 @@ void receipt()
             }
         }
     }
-    mvprintw(line+1, 3, "Total: $%.2f", total);
+
+    // Final totals
+    mvprintw(line + 1, 3, "Sub Total: $%.2f", total);
+    mvprintw(line + 2, 3, "Sales Tax (6.625%%): $%.2f", total*0.06625);
+    mvprintw(line+3, 3, "Total: $%.2f", total+(total*0.06625));
+
+    // Friendly thank you message
+    attron(COLOR_PAIR(MESSAGE_TEXT_COLOR));
+    mvprintw(line + 5, 3, "Thank you for shopping at Ikea");
+    attroff(COLOR_PAIR(MESSAGE_TEXT_COLOR));
 }
 
+// Function to view the cart
 void view_cart()
 {
     bool running = true;
 
     while (running)
     {
+        // View Cart Banner
         clear();
         message(col, "View Cart");
         int line = 3;
         int itemIndex = 0;
 
+        // Print out all the products with an index
         for (int i = 0; i < MAX_PRODUCTS; i++)
         {
             if (products[i].quantity > 0)
@@ -493,6 +530,7 @@ void view_cart()
         attroff(COLOR_PAIR(MESSAGE_TEXT_COLOR) | A_BOLD);
         printw("] Back");
 
+        // Keybindings
         ch = getch();
 
         switch (ch)
@@ -534,6 +572,7 @@ void view_cart()
                 }
             }
             break;
+        // If Check Out, get the receipt.
         case 'c':
             receipt();
             getch();
@@ -542,6 +581,7 @@ void view_cart()
     }
 }
 
+// Function for home screen
 int main()
 {
     bool running = true;
@@ -591,6 +631,7 @@ int main()
             }
         }
 
+        // View Cart Option
         mvprintw(13, 2, "[");
         attron(COLOR_PAIR(MESSAGE_TEXT_COLOR) | A_BOLD);
         printw("V");
@@ -604,7 +645,7 @@ int main()
         move(row - 1, 0);
         ch = getch();
 
-        // Assigning Keys
+        // Keybindings
         switch (ch)
         {
         case KEY_RESIZE:
